@@ -39,6 +39,8 @@ logger = logging.getLogger(__name__)
 
 class FieldSpec(BaseModel):
     """Specification for a single projected output field."""
+    model_config = {"populate_by_name": True}
+
     path: str                            # output field name
     type: str = "string"                 # "string", "string[]", "number", etc.
     required: bool = False
@@ -48,10 +50,6 @@ class FieldSpec(BaseModel):
 
     # Normalizer key from NORMALIZER_REGISTRY (e.g. "E164", "canonical").
     normalize: Optional[str] = None
-
-    class Config:
-        # Allow "from" as an alias for "from_path" in JSON input.
-        populate_by_name = True
 
 
 class ProjectionConfig(BaseModel):
