@@ -1,0 +1,71 @@
+{
+  "applicants": [
+    {
+      "applicant_name": "Jonathan Doe",
+      "contact_email": "jon.doe@example.com",
+      "contact_phone": "+14155551234",
+      "current_role": "Staff Engineer",
+      "current_employer": "Acme Corp",
+      "applied_date": "2024-11-15",
+      "skill_tags": ["Python", "Go", "Kubernetes", "AWS"],
+      "job_history": [
+        {
+          "employer": "Acme Corp",
+          "role": "Staff Engineer",
+          "from": "2022-03",
+          "to": null
+        },
+        {
+          "employer": "Beta LLC",
+          "role": "Software Engineer",
+          "from": "2019-06",
+          "to": "2022-02"
+        }
+      ],
+      "education_history": [
+        {
+          "school": "MIT",
+          "qualification": "BS",
+          "major": "Computer Science",
+          "graduation_year": 2019
+        }
+      ]
+    },
+    {
+      "applicant_name": "Alice Johnson",
+      "contact_email": "alice.j@techstart.io",
+      "contact_phone": "(415) 555-8888",
+      "current_role": "Senior Engineer",
+      "current_employer": "TechStart",
+      "applied_date": "2024-10-20",
+      "skill_tags": ["Python", "React", "TypeScript", "Docker"],
+      "job_history": [
+        {
+          "employer": "TechStart",
+          "role": "Senior Engineer",
+          "from": "2021-01",
+          "to": null
+        }
+      ],
+      "education_history": [
+        {
+          "school": "Stanford University",
+          "qualification": "MS",
+          "major": "Computer Science",
+          "graduation_year": 2020
+        }
+      ]
+    },
+    {
+      "applicant_name": "Bob Martinez",
+      "contact_email": "bob.m@example.org",
+      "contact_phone": null,
+      "current_role": "Data Scientist",
+      "current_employer": "DataWorks",
+      "applied_date": "2024-09-01",
+      "skill_tags": ["Python", "SQL", "TensorFlow"],
+      "job_history": [],
+      "education_history": []
+    }
+  ]
+}

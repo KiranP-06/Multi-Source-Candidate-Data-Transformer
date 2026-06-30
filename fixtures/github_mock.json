@@ -1,0 +1,35 @@
+{
+  "login": "jondoe",
+  "name": "Jon Doe",
+  "bio": "Backend engineer. Open-source contributor. Coffee addict.",
+  "html_url": "https://github.com/jondoe",
+  "location": "San Francisco, CA",
+  "email": "jon.doe@example.com",
+  "public_repos": 12,
+  "repos": [
+    {
+      "name": "microservice-kit",
+      "language": "Go",
+      "stargazers_count": 45,
+      "description": "Toolkit for building microservices"
+    },
+    {
+      "name": "py-data-pipeline",
+      "language": "Python",
+      "stargazers_count": 23,
+      "description": "Data pipeline framework"
+    },
+    {
+      "name": "k8s-deploy-action",
+      "language": "Shell",
+      "stargazers_count": 8,
+      "description": "GitHub Action for K8s deployments"
+    },
+    {
+      "name": "dotfiles",
+      "language": null,
+      "stargazers_count": 1,
+      "description": "My dotfiles"
+    }
+  ]
+}

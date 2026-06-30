@@ -1,0 +1,24 @@
+Jonathan Doe
+jon.doe@example.com
+(415) 555-1234
+
+SUMMARY
+Experienced backend engineer with 5+ years building distributed systems and
+data pipelines. Passionate about clean code and open-source.
+
+EXPERIENCE
+Staff Engineer, Acme Corp
+March 2022 - Present
+Led migration of monolithic architecture to microservices using Go and
+Kubernetes. Reduced deployment time by 60%.
+
+Software Engineer, Beta LLC
+June 2019 - February 2022
+Built and maintained Python-based ETL pipelines processing 2M+ records daily.
+Implemented CI/CD pipelines using GitHub Actions.
+
+EDUCATION
+BS Computer Science, MIT, 2019
+
+SKILLS
+Python, Go, Kubernetes, Docker, AWS, PostgreSQL, Redis, GitHub Actions
