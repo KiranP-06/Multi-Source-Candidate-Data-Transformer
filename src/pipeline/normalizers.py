@@ -278,3 +278,47 @@ NORMALIZER_REGISTRY: Dict[str, Callable] = {
     "name": normalize_name,
     "email": normalize_email,
 }
+
+
+# ---------------------------------------------------------------------------
+# Fragment-level normalization (applied before blocking/matching)
+# ---------------------------------------------------------------------------
+
+def normalize_fragment(fragment: "CandidateFragment") -> "CandidateFragment":
+    """
+    Normalize all fields of a CandidateFragment in preparation for
+    blocking, matching, and merge.
+
+    Returns a new CandidateFragment with normalized values. The original
+    fragment is not mutated.
+
+    Applied normalizations:
+    - full_name: Unicode NFC + whitespace collapse + title-case
+    - emails: already lowercased by schema validator (no-op here)
+    - phones: E.164 via phonenumbers library; unparseable → dropped
+    - skills: canonical names via synonym table, deduplicated
+    - country: name/alias → ISO 3166 alpha-2
+    """
+    # Import here to avoid circular dependency (schema imports nothing from normalizers).
+    from pipeline.schema import CandidateFragment as CF
+
+    return CF(
+        source_id=fragment.source_id,
+        source_timestamp=fragment.source_timestamp,
+        full_name=normalize_name(fragment.full_name),
+        emails=list(fragment.emails),  # already lowercased by schema validator
+        phones=normalize_phones_list(fragment.phones),
+        city=fragment.city,
+        region=fragment.region,
+        country=normalize_country(fragment.country),
+        linkedin_url=fragment.linkedin_url,
+        github_url=fragment.github_url,
+        portfolio_url=fragment.portfolio_url,
+        other_links=list(fragment.other_links),
+        headline=fragment.headline,
+        years_experience=fragment.years_experience,
+        skills=normalize_skills_list(fragment.skills),
+        experience=list(fragment.experience),
+        education=list(fragment.education),
+    )
+
