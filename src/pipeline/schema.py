@@ -191,6 +191,7 @@ class Provenance(BaseModel):
     value: str | None   # the winning value, serialized to string
     source: str         # the source_id that contributed the winning value
     method: ResolutionMethod
+    components: dict[str, float] = Field(default_factory=dict)  # Stores math breakdown for UI
 
 
 # ---------------------------------------------------------------------------

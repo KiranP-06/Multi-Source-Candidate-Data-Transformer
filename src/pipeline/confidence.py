@@ -69,7 +69,8 @@ def compute_field_confidence(
     n_agreeing: int,
     n_disagreeing: int,
     source_timestamp: Optional[datetime] = None,
-) -> float:
+    return_components: bool = False,
+) -> float | tuple[float, dict[str, float]]:
     """
     Compute the confidence score for a single field value.
 
@@ -78,6 +79,7 @@ def compute_field_confidence(
         n_agreeing: Number of OTHER sources that agree with this value.
         n_disagreeing: Number of sources that provided a different value.
         source_timestamp: When the value was captured (for staleness).
+        return_components: If True, returns (confidence_float, components_dict).
 
     Returns:
         Confidence score clamped to [0.0, 1.0].
@@ -110,8 +112,17 @@ def compute_field_confidence(
         CONFLICT_MAX_PENALTY,
     )
 
-    confidence = base + corroboration - staleness - conflict
-    return max(0.0, min(1.0, confidence))
+    confidence = max(0.0, min(1.0, base + corroboration - staleness - conflict))
+    
+    if return_components:
+        components = {
+            "base": base,
+            "corroboration": corroboration,
+            "staleness": staleness,
+            "conflict": conflict
+        }
+        return confidence, components
+    return confidence
 
 
 def compute_overall_confidence(

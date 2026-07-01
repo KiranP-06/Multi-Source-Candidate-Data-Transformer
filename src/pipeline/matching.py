@@ -68,6 +68,8 @@ ORPHAN_NAME_THRESHOLD: float = 0.92
 ORPHAN_COMPANY_THRESHOLD: float = 0.80
 
 
+MATCH_DIAGNOSTICS: List[Dict[str, Any]] = []
+
 def compute_similarity(a: CandidateFragment, b: CandidateFragment) -> float:
     """
     Compute the weighted similarity score between two fragments.
@@ -98,6 +100,21 @@ def should_merge(a: CandidateFragment, b: CandidateFragment) -> bool:
     """
     score = compute_similarity(a, b)
     result = score >= MERGE_THRESHOLD
+
+    # Capture diagnostic for UI
+    MATCH_DIAGNOSTICS.append({
+        "source_a": a.source_id,
+        "source_b": b.source_id,
+        "name_a": a.full_name,
+        "name_b": b.full_name,
+        "name_similarity": _name_similarity(a.full_name, b.full_name),
+        "company_similarity": _company_similarity(a, b),
+        "skill_overlap": _jaccard_similarity(set(a.skills), set(b.skills)),
+        "final_score": score,
+        "threshold": MERGE_THRESHOLD,
+        "decision": "merged" if result else "kept separate",
+    })
+
     logger.debug(
         "Similarity('%s', '%s') = %.3f → %s",
         a.full_name,

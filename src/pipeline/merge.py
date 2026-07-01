@@ -256,10 +256,10 @@ def _resolve_scalar(
     # --- Case 1: single source ---
     if len(candidates) == 1:
         value, source_id, ts = candidates[0]
-        conf = compute_field_confidence(source_id, n_agreeing=0, n_disagreeing=0, source_timestamp=ts)
+        conf, comps = compute_field_confidence(source_id, n_agreeing=0, n_disagreeing=0, source_timestamp=ts, return_components=True)
         prov = Provenance(
             field=field_name, value=value, source=source_id,
-            method="single_source",
+            method="single_source", components=comps
         )
         return value, prov, conf
 
@@ -276,13 +276,13 @@ def _resolve_scalar(
         # Pick the source with highest reliability for provenance.
         best_source = max(entries, key=lambda e: get_source_reliability(e[1]))
         n_agreeing = len(entries) - 1
-        conf = compute_field_confidence(
+        conf, comps = compute_field_confidence(
             best_source[1], n_agreeing=n_agreeing, n_disagreeing=0,
-            source_timestamp=best_source[2],
+            source_timestamp=best_source[2], return_components=True
         )
         prov = Provenance(
             field=field_name, value=value, source=best_source[1],
-            method="corroborated",
+            method="corroborated", components=comps
         )
         return value, prov, conf
 
@@ -363,13 +363,13 @@ def _resolve_conflict(
             if len(majority) == 1:
                 val, src, ts, count = majority[0]
                 n_disagreeing_maj = n_total - count
-                conf = compute_field_confidence(
+                conf, comps = compute_field_confidence(
                     src, n_agreeing=count - 1, n_disagreeing=n_disagreeing_maj,
-                    source_timestamp=ts,
+                    source_timestamp=ts, return_components=True
                 )
                 prov = Provenance(
                     field=field_name, value=val, source=src,
-                    method="conflict_resolution_majority_vote",
+                    method="conflict_resolution_majority_vote", components=comps
                 )
                 return val, prov, conf
 
@@ -377,12 +377,12 @@ def _resolve_conflict(
         # (Already sorted by source_id alphabetically as tertiary key)
         method = "conflict_resolution_higher_source_reliability"
 
-    conf = compute_field_confidence(
+    conf, comps = compute_field_confidence(
         best[1], n_agreeing=best[3] - 1, n_disagreeing=n_disagreeing,
-        source_timestamp=best[2],
+        source_timestamp=best[2], return_components=True
     )
     prov = Provenance(
-        field=field_name, value=best[0], source=best[1], method=method,
+        field=field_name, value=best[0], source=best[1], method=method, components=comps
     )
     return best[0], prov, conf
 
