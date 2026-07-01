@@ -1,5 +1,5 @@
 name,email,phone,current_company,title
 Jon Doe,jon.doe@example.com,(415) 555-1234,Acme Corp,Software Engineer
-Jane Smith,jane.s@acme.com,(555) 555-0000,Acme Corp,Product Manager
-Jane Smith,jsmith@globex.com,(555) 555-0000,Globex Inc,Product Manager
+Jane Smith,jane.s@acme.com,(415) 555-9876,Acme Corp,Product Manager
+Jane Smith,jsmith@globex.com,(415) 555-9876,Globex Inc,Product Manager
 Alice Johnson,alice.j@techstart.io,+91-9876543210,TechStart,Senior Engineer
