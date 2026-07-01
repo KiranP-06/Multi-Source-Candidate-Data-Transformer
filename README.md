@@ -24,6 +24,9 @@ PYTHONPATH=src python -m pipeline.cli \
 
 # Run tests
 PYTHONPATH=src python -m pytest tests/ -v
+
+# Run the interactive demo UI
+PYTHONPATH=src streamlit run src/pipeline/ui.py
 ```
 
 ## Architecture
