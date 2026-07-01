@@ -367,9 +367,10 @@ def _resolve_conflict(
                     src, n_agreeing=count - 1, n_disagreeing=n_disagreeing_maj,
                     source_timestamp=ts, return_components=True
                 )
+                alts = [{"value": str(vr[0]), "source": vr[1]} for vr in value_representatives if vr[0] != val]
                 prov = Provenance(
                     field=field_name, value=val, source=src,
-                    method="conflict_resolution_majority_vote", components=comps
+                    method="conflict_resolution_majority_vote", components=comps, alternatives=alts
                 )
                 return val, prov, conf
 
@@ -381,8 +382,9 @@ def _resolve_conflict(
         best[1], n_agreeing=best[3] - 1, n_disagreeing=n_disagreeing,
         source_timestamp=best[2], return_components=True
     )
+    alts = [{"value": str(vr[0]), "source": vr[1]} for vr in value_representatives if vr[0] != best[0]]
     prov = Provenance(
-        field=field_name, value=best[0], source=best[1], method=method, components=comps
+        field=field_name, value=best[0], source=best[1], method=method, components=comps, alternatives=alts
     )
     return best[0], prov, conf
 

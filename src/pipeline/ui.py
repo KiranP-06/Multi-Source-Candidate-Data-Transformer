@@ -296,12 +296,20 @@ if run_btn:
                         st.markdown("##### Provenance Log")
                         prov_data = []
                         for prov in p.provenance:
-                            prov_data.append({
+                            # Build the primary row
+                            row = {
                                 "Field": prov.field,
                                 "Value": prov.value,
                                 "Source": prov.source,
                                 "Resolution Method": prov.method
-                            })
+                            }
+                            # Add alternatives into the value cell if present
+                            if prov.alternatives and str(prov.method).startswith("conflict_resolution"):
+                                alts_str = " | ".join([f"'{a['value']}' ({a['source']})" for a in prov.alternatives])
+                                row["Value"] = f"{prov.value}\n(Also reported: {alts_str} — not selected)"
+                                
+                            prov_data.append(row)
+                            
                         import pandas as pd
                         df_prov = pd.DataFrame(prov_data)
                         
@@ -310,9 +318,11 @@ if run_btn:
                                 return 'background-color: #ffcccc; color: #900;'
                             return ''
                             
-                        # applymap is deprecated in newer pandas, map is preferred, but applymap is safer for older versions
-                        styler = df_prov.style.applymap(highlight_conflict, subset=['Resolution Method'])
-                        st.dataframe(styler, use_container_width=True, hide_index=True)
+                        if not df_prov.empty and 'Resolution Method' in df_prov.columns:
+                            styler = df_prov.style.applymap(highlight_conflict, subset=['Resolution Method'])
+                            st.dataframe(styler, use_container_width=True, hide_index=True)
+                        else:
+                            st.dataframe(df_prov, use_container_width=True, hide_index=True)
             
             # 4. Config & Projection Tab
             with tab_config:
@@ -335,7 +345,9 @@ if run_btn:
                     
         except ValidationError as e:
             st.error("Validation Error during Projection")
-            st.exception(e)
+            for err in e.errors():
+                loc = " -> ".join(str(l) for l in err["loc"])
+                st.error(f"Field '{loc}': {err['msg']}")
         except json.JSONDecodeError as e:
             st.error(f"Invalid JSON Config: {e}")
         except Exception as e:

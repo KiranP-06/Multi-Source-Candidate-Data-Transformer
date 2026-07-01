@@ -192,6 +192,7 @@ class Provenance(BaseModel):
     source: str         # the source_id that contributed the winning value
     method: ResolutionMethod
     components: dict[str, float] = Field(default_factory=dict)  # Stores math breakdown for UI
+    alternatives: list[dict[str, str]] | None = None            # Track losing values for conflicts
 
 
 # ---------------------------------------------------------------------------
