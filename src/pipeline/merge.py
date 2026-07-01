@@ -30,6 +30,8 @@ from pipeline.confidence import (
     compute_field_confidence,
     compute_overall_confidence,
     get_source_reliability,
+    CORROBORATION_BONUS_PER_SOURCE,
+    CORROBORATION_MAX_BONUS,
 )
 from pipeline.schema import (
     CandidateFragment,
@@ -88,7 +90,7 @@ def merge_fragments(
 
     years_exp, ye_prov, ye_conf = _resolve_scalar(
         fragments, "years_experience",
-        lambda f: str(f.years_experience) if f.years_experience is not None else None,
+        lambda f: str(float(f.years_experience)) if f.years_experience is not None else None,
     )
     if ye_prov:
         provenance.append(ye_prov)
@@ -317,23 +319,6 @@ def _resolve_conflict(
             (best[0], best[1], best[2], len(entries))  # value, source, timestamp, count
         )
 
-    # --- 3c: Majority vote (if 3+ total candidates) ---
-    if n_total >= 3:
-        majority_threshold = n_total / 2
-        majority = [vr for vr in value_representatives if vr[3] > majority_threshold]
-        if len(majority) == 1:
-            val, src, ts, count = majority[0]
-            n_disagreeing = n_total - count
-            conf = compute_field_confidence(
-                src, n_agreeing=count - 1, n_disagreeing=n_disagreeing,
-                source_timestamp=ts,
-            )
-            prov = Provenance(
-                field=field_name, value=val, source=src,
-                method="conflict_resolution_majority_vote",
-            )
-            return val, prov, conf
-
     # --- 3a: Higher source reliability ---
     # Sort by (reliability DESC, timestamp DESC, source_id ASC for determinism).
     value_representatives.sort(
@@ -357,17 +342,39 @@ def _resolve_conflict(
         method: ResolutionMethod = "conflict_resolution_higher_source_reliability"
     elif second and best[2] and second[2]:
         # Make timestamps tz-aware for comparison.
-        best_ts = best[2].replace(tzinfo=None) if best[2] else datetime.min
-        second_ts = second[2].replace(tzinfo=None) if second[2] else datetime.min
+        from datetime import timezone
+        best_ts = best[2].replace(tzinfo=timezone.utc) if best[2].tzinfo is None else best[2]
+        second_ts = second[2].replace(tzinfo=timezone.utc) if second[2].tzinfo is None else second[2]
         if best_ts > second_ts:
             # --- 3b: Reliability tied, but best is more recent ---
             method = "conflict_resolution_latest_date"
         else:
-            # --- 3d: True tie — deterministic alphabetical tie-break ---
-            # (Already sorted by source_id alphabetically as tertiary key)
-            method = "conflict_resolution_higher_source_reliability"
+            # Drop through to majority vote / tie break
+            method = None
     else:
-        # --- 3d: True tie, no timestamps to compare ---
+        # Drop through to majority vote / tie break
+        method = None
+
+    if method is None:
+        # --- 3c: Majority vote (if 3+ total candidates) ---
+        if n_total >= 3:
+            majority_threshold = n_total / 2
+            majority = [vr for vr in value_representatives if vr[3] > majority_threshold]
+            if len(majority) == 1:
+                val, src, ts, count = majority[0]
+                n_disagreeing_maj = n_total - count
+                conf = compute_field_confidence(
+                    src, n_agreeing=count - 1, n_disagreeing=n_disagreeing_maj,
+                    source_timestamp=ts,
+                )
+                prov = Provenance(
+                    field=field_name, value=val, source=src,
+                    method="conflict_resolution_majority_vote",
+                )
+                return val, prov, conf
+
+        # --- 3d: True tie — deterministic alphabetical tie-break ---
+        # (Already sorted by source_id alphabetically as tertiary key)
         method = "conflict_resolution_higher_source_reliability"
 
     conf = compute_field_confidence(
@@ -431,8 +438,9 @@ def _merge_skills(fragments: List[CandidateFragment]) -> List[Skill]:
             get_source_reliability(s) for s in info["sources"]
         ) / n_sources
         corroboration = min(
-            (n_sources - 1) * 0.10, 0.20
-        )  # same constants as confidence.py
+            (n_sources - 1) * CORROBORATION_BONUS_PER_SOURCE,
+            CORROBORATION_MAX_BONUS,
+        )
         conf = min(1.0, avg_reliability + corroboration)
 
         skills.append(Skill(

@@ -348,47 +348,56 @@ class TestGenuineValueConflictNoClearWinner:
     """
 
     def test_genuine_conflict_lowers_confidence(self):
-        # Setup: two fragments from sources with EQUAL reliability,
-        # reporting different headlines.
+        # Setup: two fragments from sources. We mock get_source_reliability
+        # so they have EXACTLY equal reliability to force a true tie.
+        from unittest.mock import patch
+        
         frag_a = CandidateFragment(
-            source_id="recruiter_csv",       # reliability = 0.70
+            source_id="source_z",            # Alphabetically second
             full_name="Conflict Person",
             emails=["conflict@example.com"],
             headline="Senior Engineer",
-            source_timestamp=datetime(2024, 6, 1, tzinfo=timezone.utc),
+            source_timestamp=None,           # No timestamp to force tie
         )
         frag_b = CandidateFragment(
-            source_id="resume",              # reliability = 0.65
+            source_id="source_a",            # Alphabetically first (will win tie-break)
             full_name="Conflict Person",
             emails=["conflict@example.com"],
             headline="Staff Engineer",
-            source_timestamp=datetime(2024, 6, 15, tzinfo=timezone.utc),
+            source_timestamp=None,           # No timestamp to force tie
         )
 
         fragments = [normalize_fragment(frag_a), normalize_fragment(frag_b)]
-        profile_conflict = merge_fragments(fragments)
+        
+        with patch('pipeline.merge.get_source_reliability', return_value=0.50), \
+             patch('pipeline.confidence.get_source_reliability', return_value=0.50):
+            profile_conflict = merge_fragments(fragments)
 
-        # Assert: provenance for headline shows a conflict resolution method.
+        # Assert: provenance for headline shows the deterministic tie-break method.
         hl_provs = [p for p in profile_conflict.provenance if p.field == "headline"]
         assert len(hl_provs) == 1
         prov = hl_provs[0]
-        assert prov.method in (
-            "conflict_resolution_higher_source_reliability",
-            "conflict_resolution_latest_date",
-            "conflict_resolution_majority_vote",
-        ), f"Expected a conflict resolution method, got '{prov.method}'"
+        # In a true tie (same reliability, same/no timestamp, <3 sources), it falls through
+        # to the deterministic alphabetical source_id tie-breaker.
+        assert prov.method == "conflict_resolution_higher_source_reliability", \
+            f"Expected alphabetical tie-break method, got '{prov.method}'"
+        assert prov.value == "Staff Engineer"  # source_a comes before source_z
+        assert prov.source == "source_a"
 
         # Assert: overall_confidence is lower than it would be without conflict.
         # Create a no-conflict version (both sources agree).
         frag_agree = CandidateFragment(
-            source_id="resume",
+            source_id="source_a",
             full_name="Conflict Person",
             emails=["conflict@example.com"],
-            headline="Senior Engineer",   # same as frag_a
-            source_timestamp=datetime(2024, 6, 15, tzinfo=timezone.utc),
+            headline="Senior Engineer",      # same as frag_a
+            source_timestamp=None,
         )
         fragments_agree = [normalize_fragment(frag_a), normalize_fragment(frag_agree)]
-        profile_agree = merge_fragments(fragments_agree)
+        
+        with patch('pipeline.merge.get_source_reliability', return_value=0.50), \
+             patch('pipeline.confidence.get_source_reliability', return_value=0.50):
+            profile_agree = merge_fragments(fragments_agree)
 
         assert profile_conflict.overall_confidence < profile_agree.overall_confidence, (
             f"Conflict confidence ({profile_conflict.overall_confidence:.3f}) should be "

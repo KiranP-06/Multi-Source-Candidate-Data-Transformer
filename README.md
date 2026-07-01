@@ -298,3 +298,4 @@ PYTHONPATH=src python -m pytest tests/ -v
 | **ML-based entity extraction** | Descoped | Regex + heuristic parsing is sufficient for the demonstrated scope. The extractor architecture supports swapping in an NLP/LLM-based parser later. |
 | **Database / persistent storage** | Descoped | Pipeline is stateless, file-in → file-out. A production system would persist profiles to a database. |
 | **Country code on Location** | Partial | Country normalization uses a hardcoded ~30-entry dict (US, IN, UK, etc.) rather than `pycountry`. Sufficient for fixture data; extending is a one-line addition. |
+| **Greedy clustering** | Intentional | `_split_group_by_similarity` uses single-linkage greedy clustering. If A matches B, and B matches C, all three land in one group even if A and C never get compared directly. This is a deliberate tradeoff for O(n) merging rather than exhaustive cliques. |

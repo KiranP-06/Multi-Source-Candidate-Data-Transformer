@@ -182,6 +182,9 @@ def get_required_field_names(config: ProjectionConfig) -> Set[str]:
 # JSONPath resolution
 # ---------------------------------------------------------------------------
 
+_JSONPATH_CACHE: Dict[str, Any] = {}
+
+
 def _resolve_jsonpath(data: Dict[str, Any], expression: str) -> Any:
     """
     Resolve a JSONPath expression against a data dict.
@@ -203,11 +206,14 @@ def _resolve_jsonpath(data: Dict[str, Any], expression: str) -> Any:
     if not expression.startswith("$"):
         expression = f"$.{expression}"
 
-    try:
-        parsed = jsonpath_parse(expression)
-    except (JsonPathParserError, Exception) as exc:
-        logger.warning("Invalid JSONPath '%s': %s", expression, exc)
-        return None
+    if expression not in _JSONPATH_CACHE:
+        try:
+            _JSONPATH_CACHE[expression] = jsonpath_parse(expression)
+        except (JsonPathParserError, Exception) as exc:
+            logger.warning("Invalid JSONPath '%s': %s", expression, exc)
+            return None
+
+    parsed = _JSONPATH_CACHE[expression]
 
     matches = parsed.find(data)
     if not matches:
